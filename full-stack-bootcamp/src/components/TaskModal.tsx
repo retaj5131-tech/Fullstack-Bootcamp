@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import Crescent from "../assets/Crescent.svg";
 import type { TaskCardProps } from "./TaskCard";
 
@@ -32,7 +33,6 @@ const TaskModal = ({
   description,
   date,
   activeCrescents = 0,
-  totalCrescents = 5,
   summary = [],
   volunteersNeeded,
   completed = false,
@@ -50,18 +50,15 @@ const TaskModal = ({
 
   if (!open) return null;
 
-  return (
-    // Backdrop
+  return createPortal(
+    // Backdrop — blur + dark overlay on the fixed container itself
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm"
       onClick={onClose}
     >
-      {/* Dark dim backdrop */}
-      <div className="absolute inset-0 bg-(--bg-dark) bg-opacity-75 backdrop-blur-[2px]" />
-
       {/* Modal panel */}
       <div
-        className={`relative z-10 w-full max-w-md bg-(--panel-deep) ${completed ? "border border-(--gold-cream) shadow-[0_0_40px_8px_rgba(212,175,55,0.22)]" : "border border-(--gold-cream)/50 shadow-[0_0_40px_6px_rgba(212,175,55,0.15)]"} rounded-2xl overflow-hidden`}
+        className={`relative w-full max-w-md bg-(--panel-deep) ${completed ? "border border-(--gold-cream) shadow-[0_0_40px_8px_rgba(212,175,55,0.22)]" : "border border-(--gold-cream)/50 shadow-[0_0_40px_6px_rgba(212,175,55,0.15)]"} rounded-2xl overflow-hidden`}
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── Header bar ── */}
@@ -86,7 +83,7 @@ const TaskModal = ({
 
             {/* Crescents */}
             <div className="flex items-center gap-2">
-              {Array.from({ length: totalCrescents }).map((_, i) => (
+              {Array.from({ length: 5 }).map((_, i) => (
                 <img
                   key={i}
                   src={Crescent}
@@ -135,7 +132,7 @@ const TaskModal = ({
                 <svg className="w-5 h-5 shrink-0 text-[#D4AF37] fill-[#D4AF37]" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
                 </svg>
-                <span>{volunteersNeeded}</span>
+                <span>{volunteersNeeded} volunteers required</span>
               </p>
             </div>
           )}
@@ -171,7 +168,8 @@ const TaskModal = ({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

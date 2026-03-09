@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import Input from "./components/Input";
 import TaskCard from "./components/TaskCard";
 import TaskModal from "./components/TaskModal";
+import ParticleBackground from "./components/ParticleBackground";
 import type { TaskCardProps } from "./components/TaskCard";
 import taskData from "./data.json";
 
@@ -35,11 +36,14 @@ function App() {
       className="min-h-screen bg-(--bg-dark) text-white relative overflow-hidden font-sans flex flex-col items-center"
       style={{ backgroundImage: `url(${backGroundPattern})`, backgroundSize: "cover" }}
     >
-      <img src={lanternRight} alt="Right Lanterns" className="absolute top-0 right-0 w-32 md:w-70 opacity-80" />
-      <img src={lanternLeft} alt="Left Lanterns" className="absolute top-0 left-0 w-32 md:w-70 opacity-80" />
+      {/* Particle animation layer */}
+      <ParticleBackground />
+
+      <img src={lanternRight} alt="Right Lanterns" className="absolute top-0 right-0 w-32 md:w-70 opacity-80 z-2" />
+      <img src={lanternLeft} alt="Left Lanterns" className="absolute top-0 left-0 w-32 md:w-70 opacity-80 z-2" />
 
       {/* Gold border frame */}
-      <div className="mx-auto w-[95vw] h-[90vh] border-[3px] border-(--text-cream) flex flex-col items-center gap-10 py-12 px-10 shadow-2xl my-12">
+      <div className="relative z-2 mx-auto w-[95vw] h-[90vh] border-[3px] border-(--text-cream) flex flex-col items-center gap-10 py-12 px-10 shadow-2xl my-12">
         <div className="max-w-4xl flex flex-col items-center justify-start gap-6">
           <Header />
           <Input />

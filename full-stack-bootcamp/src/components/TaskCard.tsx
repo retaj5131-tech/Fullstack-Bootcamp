@@ -6,12 +6,11 @@ export type TaskCardProps = {
   description: string;
   date: string;
   activeCrescents?: number;
-  totalCrescents?: number;
   variant?: "small" | "wide";
   completed?: boolean;
   completedOn?: string; // e.g. "Mar 12th 2026"
   summary?: string[];
-  volunteersNeeded?: string;
+  volunteersNeeded?: number;
   onClick?: () => void;
 };
 
@@ -20,7 +19,6 @@ const TaskCard = ({
   description,
   date,
   activeCrescents = 0,
-  totalCrescents = 5,
   variant = "small",
   completed = false,
   completedOn,
@@ -63,7 +61,7 @@ const TaskCard = ({
 
       {/* Crescents */}
       <div className="relative flex items-center gap-1 mt-3">
-        {Array.from({ length: totalCrescents }).map((_, i) => {
+        {Array.from({ length: 5 }).map((_, i) => {
           const active = i < activeCrescents;
           return (
             <img

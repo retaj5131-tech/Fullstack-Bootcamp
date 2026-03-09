@@ -4,7 +4,6 @@
     "title": "Iftar Prep",
     "description": "Prepare 20 meals for the local area",
     "date": "Mar 6th 2026",
-    "totalCrescents": 5,
     "activeCrescents": 4,
     "variant": "small",
     "summary": [
@@ -12,14 +11,13 @@
       "Logistics setup at distribution point.",
       "Hygiene check of all items."
     ],
-    "volunteersNeeded": "10 volunteers required"
+    "volunteersNeeded": 10
   },
   {
     "id": 2,
     "title": "Iftar Prep",
     "description": "Prepare 20 meals for the local area",
     "date": "Mar 6th 2026",
-    "totalCrescents": 5,
     "activeCrescents": 4,
     "variant": "small",
     "summary": [
@@ -27,14 +25,13 @@
       "Logistics setup at distribution point.",
       "Hygiene check of all items."
     ],
-    "volunteersNeeded": "10 volunteers required"
+    "volunteersNeeded": 10
   },
   {
     "id": 3,
     "title": "Iftar Prep",
     "description": "Prepare 20 meals for the local area",
     "date": "Mar 6th 2026",
-    "totalCrescents": 5,
     "activeCrescents": 4,
     "variant": "small",
     "summary": [
@@ -42,14 +39,13 @@
       "Logistics setup at distribution point.",
       "Hygiene check of all items."
     ],
-    "volunteersNeeded": "10 volunteers required"
+    "volunteersNeeded": 10
   },
   {
     "id": 4,
     "title": "Iftar Prep",
     "description": "Prepare 20 meals for the local area",
     "date": "Mar 6th 2026",
-    "totalCrescents": 5,
     "activeCrescents": 5,
     "variant": "small",
     "completed": true,
@@ -59,14 +55,13 @@
       "Logistics setup at distribution point.",
       "Hygiene check of all items."
     ],
-    "volunteersNeeded": "10 volunteers required"
+    "volunteersNeeded": 10
   },
   {
     "id": 5,
     "title": "Mosque Cleanup",
     "description": "Going around the mosque and making sure everything is prepped and ready",
     "date": "Mar 12th 2026",
-    "totalCrescents": 5,
     "activeCrescents": 5,
     "variant": "wide",
     "completed": true,
@@ -76,6 +71,6 @@
       "Restock prayer mats and supplies.",
       "Check all lighting and sound equipment."
     ],
-    "volunteersNeeded": "15 volunteers required"
+    "volunteersNeeded": 15
   }
 ]
