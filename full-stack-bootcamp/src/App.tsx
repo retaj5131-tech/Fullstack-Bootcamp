@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import backGroundPattern from "./assets/Background Vector.svg";
 import lanternRight from "./assets/Right lanterns.png";
 import lanternLeft from "./assets/Left lanterns.png";
@@ -7,28 +7,57 @@ import Input from "./components/Input";
 import TaskCard from "./components/TaskCard";
 import TaskModal from "./components/TaskModal";
 import ParticleBackground from "./components/ParticleBackground";
-import type { TaskCardProps } from "./components/TaskCard";
-import taskData from "./data.json";
-
-type Task = TaskCardProps & { id: number };
-const TASKS = taskData as Task[];
+import { getAllTasks, updateTask, deleteTask } from "./api";
+import type { Task } from "./api";
 
 function App() {
   const [openTaskId, setOpenTaskId] = useState<number | null>(null);
-  const [tasks, setTasks] = useState(TASKS);
+  const [tasks, setTasks] = useState<Task[]>([]);
+
+  // ── Step 1: Load all tasks when the app first opens ──────────
+  // useEffect with an empty [] runs once — right after the first render.
+  // We call getAllTasks() from api.ts, wait for the response, then
+  // store the result in `tasks` so React re-renders the card grid.
+  useEffect(() => {
+    getAllTasks().then(setTasks);
+  }, []);
 
   const openTask = tasks.find((t) => t.id === openTaskId) ?? null;
 
-  const handleToggleCompleted = (id: number) => {
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === id
-          ? t.completed
-            ? { ...t, completed: false, completedOn: undefined }
-            : { ...t, completed: true, completedOn: t.date, activeCrescents: t.totalCrescents }
-          : t
-      )
-    );
+  // ── Step 2: Add a freshly-created task to the list ──────────
+  // Input.tsx calls createTask() and then calls this so the new
+  // card appears immediately without re-fetching everything.
+  const handleTaskAdded = (newTask: Task) => {
+    setTasks((prev) => [...prev, newTask]);
+  };
+
+  // ── Step 3: Toggle a task between completed / not completed ──
+  // We call updateTask() in api.ts, wait for the saved result,
+  // then replace the old task in our local list with the new one.
+  const handleToggleCompleted = async (id: number) => {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+
+    const updated = await updateTask(id, {
+      completed: !task.completed,
+      completedOn: task.completed ? undefined : task.date,
+      activeCrescents: task.completed ? task.activeCrescents : 5,
+    });
+
+    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+  };
+
+  // ── Step 4: Save edits made inside the modal ────────────────
+  const handleUpdate = async (id: number, changes: Partial<Task>) => {
+    const updated = await updateTask(id, changes);
+    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+  };
+
+  // ── Step 5: Delete a task ────────────────────────────────────
+  const handleDelete = async (id: number) => {
+    await deleteTask(id);
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+    setOpenTaskId(null);
   };
 
   return (
@@ -46,7 +75,7 @@ function App() {
       <div className="relative z-2 mx-auto w-[95vw] h-[90vh] border-[3px] border-(--text-cream) flex flex-col items-center gap-10 py-12 px-10 shadow-2xl my-12">
         <div className="max-w-4xl flex flex-col items-center justify-start gap-6">
           <Header />
-          <Input />
+          <Input onTaskAdded={handleTaskAdded} />
 
           {/* Task card grid */}
           <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
@@ -67,6 +96,8 @@ function App() {
           open={openTaskId !== null}
           onClose={() => setOpenTaskId(null)}
           onToggleCompleted={() => handleToggleCompleted(openTask.id)}
+          onUpdate={(changes) => handleUpdate(openTask.id, changes)}
+          onDelete={() => handleDelete(openTask.id)}
           {...openTask}
         />
       )}

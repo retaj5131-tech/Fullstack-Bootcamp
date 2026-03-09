@@ -1099,6 +1099,306 @@ npm run preview
 
 ---
 
+## 14. Step 9 — Integrating the Flask Backend
+
+Up until now the app has been running entirely on static data from `data.json`.  
+In this step we connect it to a real Flask API so tasks are fetched from a database, created by AI, edited, and deleted — all live.
+
+> **Flask must be running on `http://localhost:5000` before you start.**  
+> The backend exposes: `GET /todos`, `POST /todos`, `GET /todos/:id`, `PUT /todos/:id`, `DELETE /todos/:id`.
+
+---
+
+### What is `fetch`?
+
+`fetch` is the browser's built-in tool for making HTTP requests.  
+You `await` it to get the response, then call `.json()` to turn the raw body into a JavaScript object.
+
+```ts
+const response = await fetch("http://localhost:5000/todos");
+const data = await response.json();  // data is now an array of tasks
+```
+
+---
+
+### Step 9A — Create `src/api.ts`
+
+Create a **single file** that holds every API call.  
+This way none of the React components need to know what URL the backend lives at, or how the response is shaped.
+
+```ts
+// src/api.ts
+const BASE_URL = "http://localhost:5000";
+
+// The shape of a Task as our frontend understands it.
+// Note: the backend calls it `priority`; we rename to `activeCrescents` here.
+export type Task = {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  activeCrescents: number;    // mapped from backend `priority`
+  variant?: "small" | "wide";
+  completed?: boolean;
+  completedOn?: string;
+  summary?: string[];
+  volunteersNeeded?: number;
+};
+
+// Internal helper — converts the raw backend object into our Task shape.
+function mapTask(raw: any): Task {
+  return {
+    id: raw.id,
+    title: raw.title,
+    description: raw.description,
+    date: raw.date,
+    activeCrescents: raw.priority ?? 0,
+    variant: raw.variant,
+    completed: raw.completed,
+    completedOn: raw.completedOn,
+    summary: raw.summary,
+    volunteersNeeded: raw.volunteersNeeded,
+  };
+}
+
+// GET /todos — fetch all tasks
+export async function getAllTasks(): Promise<Task[]> {
+  const response = await fetch(`${BASE_URL}/todos`);
+  if (!response.ok) throw new Error("Failed to fetch tasks");
+  const data = await response.json();
+  return data.map(mapTask);
+}
+
+// POST /todos — create a new task (Gemini generates everything from the description)
+export async function createTask(description: string): Promise<Task> {
+  const response = await fetch(`${BASE_URL}/todos`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ description }),
+  });
+  if (!response.ok) throw new Error("Failed to create task");
+  return mapTask(await response.json());
+}
+
+// PUT /todos/:id — save changes to an existing task
+export async function updateTask(id: number, updates: Partial<Omit<Task, "id">>): Promise<Task> {
+  const body: Record<string, unknown> = { ...updates };
+  if ("activeCrescents" in body) {
+    body.priority = body.activeCrescents;   // backend field name
+    delete body.activeCrescents;
+  }
+  const response = await fetch(`${BASE_URL}/todos/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!response.ok) throw new Error("Failed to update task");
+  return mapTask(await response.json());
+}
+
+// DELETE /todos/:id — remove a task permanently
+export async function deleteTask(id: number): Promise<boolean> {
+  const response = await fetch(`${BASE_URL}/todos/${id}`, { method: "DELETE" });
+  if (!response.ok) throw new Error("Failed to delete task");
+  return true;
+}
+```
+
+**Key concepts introduced:**
+- `async / await` — waits for the network request to finish before moving on.
+- `response.ok` — a quick safety check; if the server returns an error code we throw so the caller can handle it.
+- The `mapTask` helper keeps the field-name difference (`priority` ↔ `activeCrescents`) in one place.
+
+---
+
+### Step 9B — Update `App.tsx`
+
+Replace the static `useState(TASKS)` with a `useEffect` that calls `getAllTasks()` on first render, and add handlers that the modal will use.
+
+```tsx
+// src/App.tsx  (showing only the parts that change)
+
+import { useState, useEffect } from "react";
+import { getAllTasks, updateTask, deleteTask } from "./api";
+import type { Task } from "./api";
+
+function App() {
+  const [tasks, setTasks] = useState<Task[]>([]);   // starts empty; fills once the fetch resolves
+
+  // ── Load tasks from the API when the page first opens ──────
+  // useEffect with [] runs exactly once — after the first render.
+  useEffect(() => {
+    getAllTasks().then(setTasks);
+  }, []);
+
+  // ── Called from Input.tsx after a new task is created ──────
+  // Adds the brand-new task to the list without re-fetching.
+  const handleTaskAdded = (newTask: Task) => {
+    setTasks((prev) => [...prev, newTask]);
+  };
+
+  // ── Mark completed / un-completed ──────────────────────────
+  const handleToggleCompleted = async (id: number) => {
+    const task = tasks.find((t) => t.id === id);
+    if (!task) return;
+    const updated = await updateTask(id, {
+      completed: !task.completed,
+      completedOn: task.completed ? undefined : task.date,
+      activeCrescents: task.completed ? task.activeCrescents : 5,
+    });
+    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+  };
+
+  // ── Save edits from TaskModal ───────────────────────────────
+  const handleUpdate = async (id: number, changes: Partial<Task>) => {
+    const updated = await updateTask(id, changes);
+    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+  };
+
+  // ── Delete from TaskModal ───────────────────────────────────
+  const handleDelete = async (id: number) => {
+    await deleteTask(id);
+    setTasks((prev) => prev.filter((t) => t.id !== id));
+    setOpenTaskId(null);
+  };
+
+  // ... rest of JSX — pass onTaskAdded, onUpdate, onDelete down ...
+}
+```
+
+**What changed:**
+- `useState([])` instead of `useState(TASKS)` — the grid is empty until the first fetch resolves.
+- `useEffect(..., [])` — the `[]` dependency array means "run this once on mount".
+- Three `async` handlers that call the API then update local state so React re-renders immediately.
+
+---
+
+### Step 9C — Update `Input.tsx`
+
+The input field now sends the description to the backend and tells `App.tsx` about the new task.
+
+```tsx
+// src/components/Input.tsx
+import { useState } from "react";
+import { createTask } from "../api";
+import type { Task } from "../api";
+
+type InputProps = {
+  onTaskAdded: (task: Task) => void;  // callback to App.tsx
+};
+
+const Input = ({ onTaskAdded }: InputProps) => {
+  const [value, setValue] = useState("");
+
+  const handleSubmit = async () => {
+    const trimmed = value.trim();
+    if (!trimmed) return;            // ignore empty submissions
+
+    try {
+      const newTask = await createTask(trimmed);  // POST to Flask
+      onTaskAdded(newTask);                        // tell App.tsx
+      setValue("");                                // clear the field
+    } catch (err) {
+      console.error("Failed to create task:", err);
+    }
+  };
+
+  return (
+    <div className="w-full flex items-center justify-center">
+      <div className="relative w-full max-w-4xl">
+        <input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+          placeholder="Add your Next Ramadan Task Here......"
+          // ... rest of className ...
+        />
+      </div>
+      <button onClick={handleSubmit}>
+        {/* Add icon */}
+      </button>
+    </div>
+  );
+};
+```
+
+**What changed:**
+- `useState("")` tracks what the user is typing.
+- `onChange` keeps the state in sync with the input field.
+- `onKeyDown` lets users press **Enter** to submit.
+- `createTask(trimmed)` calls the backend; Gemini generates the full task object.
+- `onTaskAdded(newTask)` passes the result up to `App.tsx`.
+
+---
+
+### Step 9D — Update `TaskModal.tsx`
+
+The modal is now the home for **Edit** and **Delete**.  
+It manages its own edit-mode state so the logic is self-contained and doesn't need to be scattered across multiple files.
+
+**New props added to `TaskModalProps`:**
+
+```tsx
+onUpdate?: (changes: Partial<Task>) => void;  // save edits → PUT /todos/:id
+onDelete?: () => void;                         // delete → DELETE /todos/:id
+```
+
+**Edit mode flow:**
+
+```tsx
+// Inside TaskModal, at the top of the component:
+const [isEditing, setIsEditing] = useState(false);
+
+// Four controlled fields for the edit form:
+const [editTitle, setEditTitle] = useState(title);
+const [editDescription, setEditDescription] = useState(description);
+const [editVolunteers, setEditVolunteers] = useState(volunteersNeeded ?? 0);
+const [editCrescents, setEditCrescents] = useState(activeCrescents);
+
+// Called when the user clicks SAVE:
+const handleSave = () => {
+  onUpdate?.({
+    title: editTitle,
+    description: editDescription,
+    volunteersNeeded: editVolunteers,
+    activeCrescents: editCrescents,
+  });
+  setIsEditing(false);
+};
+```
+
+The JSX then conditionally renders either the **edit form** (`isEditing === true`) or the **read-only view** (`isEditing === false`).  
+The **EDIT** and **DELETE** buttons sit side-by-side at the bottom of the view mode.
+
+---
+
+### Step 9E — Test the integration
+
+1. Start Flask: `python app.py` (or however your backend starts)
+2. Start Vite: `npm run dev`
+3. Open `http://localhost:5173`
+4. The card grid should populate from the database.
+5. Type a description and press **Enter** (or click the add button) — a new AI-generated card should appear.
+6. Click a card → modal opens → click **EDIT** → change fields → **SAVE**.
+7. Open the modal again → click **DELETE** → card is gone.
+8. Click **MARK AS COMPLETED** → card shows the completed style.
+
+---
+
+### Field mapping reference
+
+| Frontend (`Task` type) | Backend (Flask / DB) | Notes |
+|---|---|---|
+| `activeCrescents` | `priority` | Integer 1–5 |
+| `completedOn` | `completedOn` | Date string, may be `null` |
+| `volunteersNeeded` | `volunteersNeeded` | Integer |
+| `summary` | `summary` | Array of strings |
+| `variant` | `variant` | `"small"` or `"wide"` |
+
+The `mapTask()` helper in `api.ts` handles the `priority` → `activeCrescents` rename, so no other file ever has to know about it.
+
+---
+
 ## Workshop Build Order — Quick Reference
 
 | Step | File | What you add |
@@ -1113,10 +1413,15 @@ npm run preview
 | 6b | `src/App.tsx` | Add `<ParticleBackground />` as first child |
 | 7 | `src/components/TaskModal.tsx` | Portalled modal with blur backdrop |
 | 7b | `src/App.tsx` | Wire modal state + `handleToggleCompleted` |
+| 8 | `src/api.ts` | All API calls in one place |
+| 9 | `src/App.tsx` | Replace static data with `useEffect` fetch |
+| 10 | `src/components/Input.tsx` | Connect to `createTask` API |
+| 11 | `src/components/TaskModal.tsx` | Add Edit form + Delete button |
 
 ---
 
 *Built with ❤️ for the Fullstack Bootcamp — Ramadan 2026*
+
 
 The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
 

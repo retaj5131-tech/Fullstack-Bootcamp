@@ -2,6 +2,7 @@ import Crescent from "../assets/Crescent.svg";
 import Lantern from "../assets/Lantern.png";
 
 export type TaskCardProps = {
+  id: number;
   title: string;
   description: string;
   date: string;
