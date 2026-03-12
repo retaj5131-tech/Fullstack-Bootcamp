@@ -12,7 +12,7 @@
 import { useState, useEffect } from "react";
 import backGroundPattern from "./assets/Background Vector.svg";
 import lanternRight from "./assets/Right lanterns.png";
-import lanternLeft from "./assets/Left lanterns.png";
+import lanternLeft from "./assets/left lanterns.png";
 import Header from "./components/Header";
 import Input from "./components/Input";
 import TaskCard from "./components/TaskCard";
