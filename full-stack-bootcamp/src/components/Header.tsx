@@ -3,8 +3,8 @@
 
 const Header = () => {
   return (
-    <div>
-      {/* TODO: Add the title */}
+    <div className="text-6xl text-amber-100 fount-lexend text-center">
+      Ramadan Community Board
     </div>
   );
 };

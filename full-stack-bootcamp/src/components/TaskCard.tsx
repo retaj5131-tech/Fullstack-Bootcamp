@@ -1,49 +1,50 @@
 import Crescent from "../assets/Crescent.svg";
-import Lantern from "../assets/Lantern.png";
 
-// TODO (Step 5): Build the TaskCard component
-
-// Step 5A — Define the shape of a task's props:
 export type TaskCardProps = {
   id: number;
   title: string;
   description: string;
   date: string;
-  activeCrescents?: number;   // how many crescents to show as active (0–5)
-  variant?: "small" | "wide";
-  completed?: boolean;
-  completedOn?: string;       // e.g. "Mar 12th 2026"
+  activeCrescents?: number;
+  totalCrescents?: number;
   summary?: string[];
   volunteersNeeded?: number;
-  onClick?: () => void;       // called when the card is clicked
+  completed?: boolean;
+  completedOn?: string;
+  onClick?: () => void;
 };
 
-// Step 5B — Build the card UI:
 const TaskCard = ({
   title,
-  description,
   date,
   activeCrescents = 0,
-  variant = "small",
+  totalCrescents = 5,
   completed = false,
-  completedOn,
   onClick,
 }: TaskCardProps) => {
-
-  // TODO: Build the card UI
-  // Suggested structure:
-  //   <div onClick={onClick}> outer card container with border + rounded-2xl
-  //     Top row: left Lantern image | centered title | right Lantern image
-  //     Description paragraph
-  //     Row of 5 crescent images — use "crescent-active" / "crescent-inactive" className
-  //     Footer: show date normally, or a "Completed" banner if completed === true
-  //   </div>
-
   return (
-    <div onClick={onClick}>
-      {/* TODO: Add your card UI here */}
+    <div
+      className={`relative cursor-pointer rounded-xl p-4 shadow-md transition-all ${
+        completed ? "border-2 border-[var(--gold-cream)]" : "border border-[var(--gold-cream)]/50"
+      } bg-[var(--panel-deep)]`}
+      onClick={onClick}
+    >
+      <h3 className="font-bold text-[var(--gold-primary)] text-lg">{title}</h3>
+      <p className="text-sm text-amber-100/80">Date: {date}</p>
+      <div className="flex gap-1 mt-2">
+        {Array.from({ length: totalCrescents }).map((_, i) => (
+          <img
+            key={i}
+            src={Crescent}
+            alt=""
+            className={`w-5 h-5 ${i < activeCrescents ? "crescent-active" : "crescent-inactive"}`}
+          />
+        ))}
+      </div>
     </div>
   );
 };
 
 export default TaskCard;
+
+
