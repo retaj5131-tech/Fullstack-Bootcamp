@@ -1,32 +1,85 @@
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
 @import "tailwindcss";
 
+
 :root {
-  --bg-dark:        #0A1128;  /* deep navy — main background */
-  --panel-deep:     #0D1726;  /* slightly lighter navy — card/modal backgrounds */
-  --gold-primary:   #D4AF37;  /* main gold */
-  --gold-cream:     #FFF1AA;  /* light gold / cream — borders, subtle text */
-  --gold-bright:    #E8C84A;  /* bright gold — highlights */
-  --cta-1:          #C9A227;  /* CTA button gradient start */
-  --cta-2:          #E8C84A;  /* CTA button gradient end */
-  --text-cream:     #F8E4AE;  /* body/heading text */
+  --bg-dark: #0f172a; 
+  --primary-purple: #8b5cf6; 
+  --gold-highlight: #f59e0b;  
+  --coding-blue: #3b82f6;
+  --neon-pink: #ec4899;       
+
+  --primary-gold: var(--primary-purple); 
+  --secondary-gold: var(--gold-highlight);
+  --gold-primary: var(--gold-highlight);
 }
 
-/* Crescent icon states — used on both TaskCard and TaskModal */
+body {
+  background-color: var(--bg-dark);
+  color: white;
+}
+
+
+.card-class {
+  border: 2px solid var(--primary-purple) !important; 
+  background: linear-gradient(145deg, #131b2f 0%, var(--bg-dark) 100%) !important;
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3) !important;
+}
+
 .crescent-active {
-  filter: drop-shadow(0 0 6px rgba(212,175,55,0.4)) saturate(1.2) brightness(1);
+  color: var(--neon-pink) !important;
+  filter: drop-shadow(0 0 6px rgba(236, 72, 153, 0.6)) saturate(1.2) brightness(1);
 }
 .crescent-inactive {
   filter: grayscale(1) brightness(0.6) opacity(0.55);
 }
 
-/* Lexend font utility class */
+/* Font utility for Lexend (Google Fonts) */
 .font-lexend {
-  font-family: 'Lexend';
+	font-family: 'Lexend';
 }
 
-/* Prevent horizontal scroll */
+/* prevent horizontal page scroll */
 html, body {
-  overflow-x: hidden;
-  background-color: var(--bg-dark);
+	overflow-x: hidden;
+	background-color: var(--bg-dark); 
+}
+
+/* Temporarily hide scrollbars but keep scrolling functional */
+html, body {
+	-ms-overflow-style: none; 
+	scrollbar-width: none; 
+}
+
+
+/*========*/
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+	display: none; 
+}
+
+::-webkit-scrollbar {
+	width: 6px;
+}
+::-webkit-scrollbar-track {
+	background: rgba(139, 92, 246, 0.1); 
+	border-radius: 10px;
+	margin: 4px 0;
+}
+::-webkit-scrollbar-thumb {
+	background: linear-gradient(180deg, var(--primary-purple) 0%, var(--gold-highlight) 100%);
+	border-radius: 10px;
+	box-shadow: 0 0 6px rgba(139, 92, 246, 0.5);
+}
+::-webkit-scrollbar-thumb:hover {
+	background: linear-gradient(180deg, var(--coding-blue) 0%, var(--primary-purple) 100%);
+	box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+}
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-purple) rgba(15, 23, 42, 0.8);
 }
