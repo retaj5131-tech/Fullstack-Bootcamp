@@ -3,7 +3,7 @@
 
 const Header = () => {
   return (
-    <div className="text-6xl text-purple-400 fount-lexend text-center">
+    <div className="text-6xl text-purple-400 font-lexend text-center tracking-wide">
       The Roadmap to Coding Excellence
     </div>
   );

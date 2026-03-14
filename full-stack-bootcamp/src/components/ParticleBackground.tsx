@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-const GOLD_COLORS = ["#8b5cf6;," ,"#9c72fe" ,"#ffaaf7", "#9b27c9", "#d783e2"];
+const GOLD_COLORS = ["#8b5cf6;," ,"#8757f7" ,"#ffaaf7", "#9b27c9", "#d783e2"];
 type ParticleType = "star" | "crescent" | "sparkle" | "dot";
 
 interface Particle {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import backGroundPattern from "./assets/Background Vector.svg";
+import backGroundPattern from "./assets/Background.png";
 import lanternRight from "./assets/Right Picture (1).png";
 import lanternLeft from "./assets/Left Picture (1).png";
 import Header from "./components/Header";
